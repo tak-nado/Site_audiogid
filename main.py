@@ -15,7 +15,11 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 app.secret_key = 'GOIDA!IpYN(#o@uny788q8)'
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+    'postgresql://neondb_owner:npg_nHMkI1dVi9RT@ep-rapid-rice-akf08p74-pooler.c-3.us-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+)
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB
 
@@ -40,19 +44,10 @@ class Point(db.Model):
     lon = db.Column(db.Float, nullable=False)
     title = db.Column(db.String(255), default='')
     description = db.Column(db.Text, default='')
-    audio_data = db.Column(db.LargeBinary, nullable=True)
+    audio_data = db.Column(db.LargeBinary, nullable=True)     
     audio_mimetype = db.Column(db.String(100), nullable=True)
 
 with app.app_context():
-    insp = db.inspect(db.engine)
-    if 'point' in insp.get_table_names():
-        existing_columns = [col['name'] for col in insp.get_columns('point')]
-        with db.engine.connect() as conn:
-            if 'audio_data' not in existing_columns:
-                conn.execute(db.text('ALTER TABLE point ADD COLUMN audio_data BLOB'))
-            if 'audio_mimetype' not in existing_columns:
-                conn.execute(db.text('ALTER TABLE point ADD COLUMN audio_mimetype VARCHAR(100)'))
-            conn.commit()
     db.create_all()
 
 @app.route('/')
@@ -142,4 +137,4 @@ def api_create_guide():
     })
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0' ,port=5000)
+    app.run(host='0.0.0.0', port=5000)
