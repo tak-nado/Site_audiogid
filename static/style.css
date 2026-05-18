@@ -1,0 +1,247 @@
+:root {
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --danger: #dc2626;
+    --danger-hover: #b91c1c;
+    --bg: #f9fafb;
+    --text: #1f2937;
+    --gray-light: #e5e7eb;
+    --radius: 8px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+
+header {
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1rem 0;
+}
+
+header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+nav .btn {
+    margin-left: 1rem;
+}
+
+
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: background 0.2s;
+}
+
+.btn:hover {
+    background: var(--primary-hover);
+}
+
+.btn-sm {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.9rem;
+}
+
+.btn-primary {
+    background: var(--primary);
+}
+
+.btn-danger {
+    background: var(--danger);
+}
+
+.btn-danger:hover {
+    background: var(--danger-hover);
+}
+
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-weight: 500;
+}
+
+input[type="text"],
+textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--gray-light);
+    border-radius: var(--radius);
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+
+#map-container {
+    margin: 1.5rem 0;
+    border: 1px solid var(--gray-light);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+#map {
+    width: 1000%;
+    height: 525px;
+}
+
+
+.guide-list {
+    list-style: none;
+    padding: 0;
+}
+
+.guide-list li {
+    background: white;
+    margin-bottom: 0.5rem;
+    padding: 0.8rem 1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-light);
+}
+
+.guide-list li a {
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.meta {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+
+.result-msg {
+    margin-top: 1rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 0;
+}
+
+
+#audio-player {
+    background: white;
+    border-radius: var(--radius);
+    padding: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.audio-player-hidden {
+    display: none;
+}
+
+.audio-player-visible {
+    display: block;
+}
+
+
+.my-balloon-content {
+    padding: 0.5rem;
+    min-width: 220px;
+}
+
+.balloon-form label {
+    display: block;
+    margin-top: 0.5rem;
+    font-weight: 500;
+}
+
+.balloon-form input[type="text"],
+.balloon-form textarea {
+    width: 100%;
+    margin-bottom: 0.3rem;
+}
+
+.balloon-actions {
+    margin-top: 0.8rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+
+footer {
+    margin-top: auto;
+    background: white;
+    padding: 1rem 0;
+    text-align: center;
+    color: #6b7280;
+    border-top: 1px solid var(--gray-light);
+}
+
+
+@media (max-width: 600px) {
+    #map {
+        height: 300px;
+    }
+
+    .container {
+        padding: 0 0.5rem;
+    }
+}
+
+.guide-description {
+    font-size: 1.1rem;
+    color: #4b5563;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.point-info {
+    background: white;
+    border: 1px solid var(--gray-light);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-top: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.point-info h3 {
+    margin-top: 0;
+    color: var(--primary);
+}
+
+.point-info p {
+    color: #374151;
+    margin-bottom: 0;
+}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{{ guide.title }}{% endblock %}
+{% block extra_head %}
+<script src="https://api-maps.yandex.ru/2.1/?apikey={{ yandex_maps_key }}&lang=ru_RU" type="text/javascript"></script>
+{% endblock %}
+{% block content %}
+<h1>{{ guide.title }}</h1>
+{% if guide.description %}
+<p class="guide-description">{{ guide.description }}</p>
+{% endif %}
+
+<div id="map-container">
+    <div id="map"></div>
+</div>
+
+<audio id="audio-player" controls style="width:100%; margin-top:1rem; display:none;"></audio>
+
+<div id="point-info" class="point-info" style="display:none;">
+    <h3 id="info-title"></h3>
+    <p id="info-description"></p>
+</div>
+
+<p class="back-link"><a href="/">← На главную</a></p>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const points = {{ points_json| safe }};
+    let currentPointIndex = 0;
+
+    function showPointInfo(index) {
+        const point = points[index];
+        const infoDiv = document.getElementById('point-info');
+        const titleEl = document.getElementById('info-title');
+        const descEl = document.getElementById('info-description');
+        if (point.title || point.description) {
+            titleEl.textContent = point.title || '';
+            descEl.textContent = point.description || '';
+            infoDiv.style.display = 'block';
+        } else {
+            infoDiv.style.display = 'none';
+        }
+        const player = document.getElementById('audio-player');
+        if (point.audio_url) {
+            player.src = point.audio_url;
+            player.style.display = 'block';
+            player.play();
+        } else {
+            player.style.display = 'none';
+            player.pause();
+        }
+    }
+
+    ymaps.ready(() => {
+        if (!points || points.length === 0) return;
+
+        const first = points[0];
+        const map = new ymaps.Map('map', { center: [first.lat, first.lon], zoom: 12 });
+        points.forEach((p, i) => {
+            const placemark = new ymaps.Placemark([p.lat, p.lon], {
+                hintContent: `${i + 1}. ${p.title || 'Точка'}`
+            });
+            placemark.events.add('click', () => {
+                currentPointIndex = i;
+                showPointInfo(i);
+            });
+            map.geoObjects.add(placemark);
+        });
+        // setTimeout(() => {
+        //     showPointInfo(0);
+        // }, 3000);
+    });
+</script>
+{% endblock %}

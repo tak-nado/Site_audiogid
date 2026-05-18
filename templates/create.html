@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}Создать аудиогид{% endblock %}
+{% block extra_head %}
+<script src="https://api-maps.yandex.ru/2.1/?apikey={{ yandex_maps_key }}&lang=ru_RU" type="text/javascript"></script>
+{% endblock %}
+{% block content %}
+<h1>Создание нового аудиогида</h1>
+<form id="guide-form">
+    <div class="form-group">
+        <label for="guide-title">Название *</label>
+        <input type="text" id="guide-title" required>
+    </div>
+    <div class="form-group">
+        <label for="guide-desc">Описание</label>
+        <textarea id="guide-desc" rows="3"></textarea>
+    </div>
+</form>
+<div id="map-container">
+    <div id="map"></div>
+</div>
+<button id="save-btn" class="btn btn-primary">Сохранить маршрут</button>
+<div id="result" class="result-msg"></div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    ymaps.ready(init);
+    const points = [];
+
+    function generatePointId() {
+        return 'pt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function updatePointNumbers() {
+        points.forEach((p, idx) => {
+            p.order = idx;
+            if (p.placemark) {
+                const header = `Точка ${idx + 1}` + (p.title ? `: ${p.title}` : '');
+                p.placemark.properties.set('balloonContentHeader', header);
+            }
+        });
+    }
+
+    window.savePoint = function (pointId) {
+        const point = points.find(p => p.id === pointId);
+        if (!point) return;
+        const titleEl = document.getElementById('title-' + pointId);
+        const descEl = document.getElementById('desc-' + pointId);
+        const audioEl = document.getElementById('audio-' + pointId);
+
+        if (titleEl) point.title = titleEl.value.trim();
+        if (descEl) point.description = descEl.value.trim();
+        if (audioEl && audioEl.files.length > 0) {
+            point.audioFile = audioEl.files[0];
+            point.audioFileName = audioEl.files[0].name;
+        }
+
+        const idx = points.indexOf(point);
+        if (point.placemark) {
+            const header = `Точка ${idx + 1}` + (point.title ? `: ${point.title}` : '');
+            point.placemark.properties.set('balloonContentHeader', header);
+            point.placemark.balloon.close();
+        }
+        alert('Точка сохранена!');
+    };
+
+    window.deletePoint = function (pointId) {
+        const index = points.findIndex(p => p.id === pointId);
+        if (index === -1) return;
+        const point = points[index];
+        if (point.placemark) point.placemark.getMap().geoObjects.remove(point.placemark);
+        points.splice(index, 1);
+        updatePointNumbers();
+        alert('Точка удалена');
+    };
+
+    function init() {
+        const map = new ymaps.Map('map', {
+            center: [55.751244, 37.618423],
+            zoom: 10
+        });
+
+        const customBalloonContentLayout = ymaps.templateLayoutFactory.createClass(
+            '<div class="my-balloon-content">$[properties.balloonContent]</div>'
+        );
+
+        map.events.add('click', (e) => {
+            const coords = e.get('coords');
+            const pointId = generatePointId();
+            const point = {
+                id: pointId,
+                lat: coords[0],
+                lon: coords[1],
+                title: '',
+                description: '',
+                audioFile: null,
+                audioFileName: '',
+                placemark: null,
+                order: points.length
+            };
+            points.push(point);
+            addPlacemark(map, point, points.length);
+        });
+
+        function addPlacemark(map, point, number) {
+            function buildBalloonContent() {
+                let audioInfo = '';
+                if (point.audioFileName) {
+                    audioInfo = `<br><small>Аудио: ${point.audioFileName}</small>`;
+                }
+                return `
+                    <div class="balloon-form">
+                        <label>Название *</label>
+                        <input type="text" id="title-${point.id}" value="${point.title || ''}" required>
+                        <label>Описание</label>
+                        <textarea id="desc-${point.id}">${point.description || ''}</textarea>
+                        <label>Аудио *</label>
+                        <input type="file" id="audio-${point.id}" accept="audio/*" required>
+                        ${audioInfo}
+                        <div class="balloon-actions">
+                            <button onclick="savePoint('${point.id}')" class="btn btn-sm">Сохранить</button>
+                            <button onclick="deletePoint('${point.id}')" class="btn btn-sm btn-danger">Удалить</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const placemark = new ymaps.Placemark(
+                [point.lat, point.lon],
+                {
+                    balloonContentHeader: `Точка ${number}`,
+                    balloonContent: buildBalloonContent()
+                },
+                {
+                    draggable: true,
+                    balloonContentLayout: customBalloonContentLayout
+                }
+            );
+
+            map.geoObjects.add(placemark);
+            point.placemark = placemark;
+
+            placemark.events.add('balloonopen', function () {
+                setTimeout(() => {
+                    const titleEl = document.getElementById('title-' + point.id);
+                    const descEl = document.getElementById('desc-' + point.id);
+                    const audioEl = document.getElementById('audio-' + point.id);
+                    if (titleEl) titleEl.value = point.title || '';
+                    if (descEl) descEl.value = point.description || '';
+                    const small = document.querySelector(`#audio-${point.id} + br + small`);
+                    if (small) small.textContent = point.audioFileName ? `Аудио: ${point.audioFileName}` : '';
+                    const idx = points.indexOf(point);
+                    placemark.properties.set('balloonContentHeader', `Точка ${idx + 1}` + (point.title ? `: ${point.title}` : ''));
+                }, 50);
+            });
+
+            placemark.events.add('dragend', () => {
+                const coords = placemark.geometry.getCoordinates();
+                point.lat = coords[0];
+                point.lon = coords[1];
+            });
+
+            placemark.balloon.open();
+        }
+    }
+
+    function validateForm() {
+        const guideTitle = document.getElementById('guide-title').value.trim();
+        if (!guideTitle) { alert('Введите название аудиогида!'); return false; }
+        if (points.length === 0) { alert('Добавьте хотя бы одну точку!'); return false; }
+        for (let i = 0; i < points.length; i++) {
+            const p = points[i];
+            if (!p.title.trim()) { alert(`У точки ${i + 1} не заполнено название!`); return false; }
+            if (!p.audioFile) { alert(`У точки ${i + 1} не выбран аудиофайл!`); return false; }
+        }
+        return true;
+    }
+
+    document.getElementById('save-btn').addEventListener('click', async () => {
+        if (!validateForm()) return;
+        const title = document.getElementById('guide-title').value.trim();
+        const desc = document.getElementById('guide-desc').value.trim();
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('description', desc);
+        points.forEach((p, i) => {
+            formData.append(`points[${i}][lat]`, p.lat);
+            formData.append(`points[${i}][lon]`, p.lon);
+            formData.append(`points[${i}][title]`, p.title);
+            formData.append(`points[${i}][description]`, p.description);
+            formData.append(`points[${i}][order]`, i);
+            if (p.audioFile) formData.append(`audio_${i}`, p.audioFile);
+        });
+        try {
+            const resp = await fetch('/api/guides', { method: 'POST', body: formData });
+            const data = await resp.json();
+            if (data.url) {
+                document.getElementById('result').innerHTML = `<p>✅ Аудиогид создан! <a href="${data.url}">Открыть</a></p>`;
+            } else {
+                document.getElementById('result').innerHTML = `<p>❌ Ошибка: ${JSON.stringify(data)}</p>`;
+            }
+        } catch (e) {
+            document.getElementById('result').innerHTML = '<p>❌ Ошибка соединения</p>';
+        }
+    });
+</script>
+{% endblock %}

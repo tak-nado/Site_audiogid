@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Список аудиогидов{% endblock %}
+{% block content %}
+<h1>Все аудиогиды</h1>
+{% if guides %}
+<ul class="guide-list">
+    {% for guide in guides %}
+    <li>
+        <a href="/guide/{{ guide.share_token }}">{{ guide.title }}</a>
+        <span class="meta">({{ guide.points|length }} точек)</span>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<div class="empty-state">
+    <p>Пока нет ни одного аудиогида.</p>
+    <a href="/create" class="btn">Создать первый</a>
+</div>
+{% endif %}
+{% endblock %}
