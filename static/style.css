@@ -200,14 +200,14 @@ textarea {
 }
 
 
-/* footer {
+footer {
     margin-top: auto;
     background: white;
     padding: 1rem 0;
     text-align: center;
     color: #6b7280;
     border-top: 1px solid var(--gray-light);
-} */
+}
 
 
 @media (max-width: 600px) {
